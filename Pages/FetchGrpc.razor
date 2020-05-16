@@ -1,0 +1,37 @@
+@page "/fetchgrpc"
+
+<h1>gRPC</h1>
+
+<p>This component demonstrates fetching data from the server using gRPC.</p>
+
+@if (!messages.Any())
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <ol>
+        @foreach (var message in messages)
+        {
+            <li>@message</li>
+        }
+    </ol>
+}
+
+@code {
+    private List<string> messages = new List<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var channel = GrpcChannel.ForAddress("https://localhost:5001");
+
+        var client = new Greeter.GreeterClient(channel);
+
+        var replies = client.SayHello(new HelloRequest { Name = "Laurent" });
+
+        await foreach (var reply in replies.ResponseStream.ReadAllAsync())
+        {
+            messages.Add(reply.Message);
+        }
+    }
+}
